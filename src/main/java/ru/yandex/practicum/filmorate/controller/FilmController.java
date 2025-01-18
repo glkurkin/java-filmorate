@@ -59,7 +59,7 @@ public class FilmController {
             log.warn("Описание фильма превышает 200 символов");
             throw new ValidationException("Описание фильма не может быть длиннее 200 символов");
         }
-        if (film.getReleaseDate().isBefore(java.time.LocalDate.of(1895, 12, 28))) {
+        if (film.getReleaseDate() == null || film.getReleaseDate().isBefore(java.time.LocalDate.of(1895, 12, 28))) {
             log.warn("Дата релиза фильма не может быть раньше 28 декабря 1895 года");
             throw new ValidationException("Дата релиза фильма слишком ранняя");
         }

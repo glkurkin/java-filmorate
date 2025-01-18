@@ -59,7 +59,7 @@ public class UserController {
             log.warn("Логин не может быть пустым или содержать пробелы");
             throw new ValidationException("Некорректный логин");
         }
-        if (user.getBirthday().isAfter(java.time.LocalDate.now())) {
+        if (user.getBirthday() == null || user.getBirthday().isAfter(java.time.LocalDate.now())) {
             log.warn("Дата рождения пользователя не может быть в будущем");
             throw new ValidationException("Некорректная дата рождения");
         }
