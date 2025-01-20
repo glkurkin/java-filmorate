@@ -13,7 +13,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ValidationException.class)
     public ResponseEntity<String> handleValidationException(ValidationException ex) {
         log.error("Ошибка валидации: {}", ex.getMessage());
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>("{\"error\": \"" + ex.getMessage() + "\"}", HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(Exception.class)

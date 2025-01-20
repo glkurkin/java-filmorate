@@ -39,26 +39,21 @@ public class FilmController {
         try {
             log.info("Получен запрос на обновление фильма: {}", film);
             validateFilm(film);
-            Film existingFilm = films.stream()
-                    .filter(f -> f.getId() == film.getId())
-                    .findFirst()
-                    .orElse(null);
-
+            Film existingFilm = films.stream().filter(f -> f.getId() == film.getId()).findFirst().orElse(null);
             if (existingFilm == null) {
-                log.warn("Фильм с ID {} не найден", film.getId());
-                throw new ValidationException("Фильм с таким ID не найден");
+                log.warn("Фильм с id {} не найден", film.getId());
+                throw new ValidationException("Фильм не найден");
             }
 
-            films.removeIf(existing -> existing.getId() == film.getId());
+            films.removeIf(f -> f.getId() == film.getId());
             films.add(film);
             log.info("Фильм успешно обновлён: {}", film);
             return film;
         } catch (ValidationException ex) {
             log.error("Ошибка при обновлении фильма: {}", ex.getMessage());
-            throw new ValidationException(ex.getMessage());
+            throw ex;
         }
     }
-
 
 
     @GetMapping

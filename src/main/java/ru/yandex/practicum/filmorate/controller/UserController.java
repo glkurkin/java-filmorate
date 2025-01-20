@@ -39,23 +39,19 @@ public class UserController {
         try {
             log.info("Получен запрос на обновление пользователя: {}", user);
             validateUser(user);
-            User existingUser = users.stream()
-                    .filter(u -> u.getId() == user.getId())
-                    .findFirst()
-                    .orElse(null);
-
+            User existingUser = users.stream().filter(u -> u.getId() == user.getId()).findFirst().orElse(null);
             if (existingUser == null) {
-                log.warn("Пользователь с ID {} не найден", user.getId());
-                throw new ValidationException("Пользователь с таким ID не найден");
+                log.warn("Пользователь с id {} не найден", user.getId());
+                throw new ValidationException("Пользователь не найден");
             }
 
-            users.removeIf(existing -> existing.getId() == user.getId());
+            users.removeIf(u -> u.getId() == user.getId());
             users.add(user);
             log.info("Пользователь успешно обновлён: {}", user);
             return user;
         } catch (ValidationException ex) {
             log.error("Ошибка при обновлении пользователя: {}", ex.getMessage());
-            throw new ValidationException(ex.getMessage());
+            throw ex;
         }
     }
 
