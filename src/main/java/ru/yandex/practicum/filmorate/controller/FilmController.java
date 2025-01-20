@@ -39,7 +39,18 @@ public class FilmController {
         try {
             log.info("Получен запрос на обновление фильма: {}", film);
             validateFilm(film);
-            films.removeIf(existingFilm -> existingFilm.getId() == film.getId());
+            
+            Film existingFilm = films.stream()
+                    .filter(f -> f.getId() == film.getId())
+                    .findFirst()
+                    .orElse(null);
+
+            if (existingFilm == null) {
+                log.warn("Фильм с ID {} не найден", film.getId());
+                throw new ValidationException("Фильм с таким ID не найден");
+            }
+
+            films.removeIf(existing -> existing.getId() == film.getId());
             films.add(film);
             log.info("Фильм успешно обновлён: {}", film);
             return film;
@@ -48,6 +59,7 @@ public class FilmController {
             throw ex;
         }
     }
+
 
     @GetMapping
     public List<Film> getAllFilms() {

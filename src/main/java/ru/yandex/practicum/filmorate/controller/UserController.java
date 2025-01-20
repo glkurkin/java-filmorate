@@ -39,7 +39,18 @@ public class UserController {
         try {
             log.info("Получен запрос на обновление пользователя: {}", user);
             validateUser(user);
-            users.removeIf(existingUser -> existingUser.getId() == user.getId());
+
+            User existingUser = users.stream()
+                    .filter(u -> u.getId() == user.getId())
+                    .findFirst()
+                    .orElse(null);
+
+            if (existingUser == null) {
+                log.warn("Пользователь с ID {} не найден", user.getId());
+                throw new ValidationException("Пользователь с таким ID не найден");
+            }
+
+            users.removeIf(existing -> existing.getId() == user.getId());
             users.add(user);
             log.info("Пользователь успешно обновлён: {}", user);
             return user;
@@ -48,6 +59,7 @@ public class UserController {
             throw ex;
         }
     }
+
 
     @GetMapping
     public List<User> getAllUsers() {
