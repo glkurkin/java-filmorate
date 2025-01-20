@@ -15,11 +15,16 @@ public class FilmController {
 
     private final List<Film> films = new ArrayList<>();
 
+    private int generateFilmId() {
+        return films.size() + 1;
+    }
+
     @PostMapping
     public Film addFilm(@RequestBody Film film) {
         try {
             log.info("Получен запрос на добавление фильма: {}", film);
             validateFilm(film);
+            film.setId(generateFilmId());
             films.add(film);
             log.info("Фильм успешно добавлен: {}", film);
             return film;

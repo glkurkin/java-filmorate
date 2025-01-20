@@ -15,11 +15,16 @@ public class UserController {
 
     private final List<User> users = new ArrayList<>();
 
+    private int generateUserId() {
+        return users.size() + 1;
+    }
+
     @PostMapping
     public User addUser(@RequestBody User user) {
         try {
             log.info("Получен запрос на добавление пользователя: {}", user);
             validateUser(user);
+            user.setId(generateUserId());
             users.add(user);
             log.info("Пользователь успешно добавлен: {}", user);
             return user;
