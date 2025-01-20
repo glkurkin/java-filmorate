@@ -55,9 +55,10 @@ public class FilmController {
             return film;
         } catch (ValidationException ex) {
             log.error("Ошибка при обновлении фильма: {}", ex.getMessage());
-            throw new ValidationException("Некорректный запрос, " + ex.getMessage());
+            throw new ValidationException(ex.getMessage());
         }
     }
+
 
 
     @GetMapping
