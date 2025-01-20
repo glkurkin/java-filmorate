@@ -39,7 +39,6 @@ public class UserController {
         try {
             log.info("Получен запрос на обновление пользователя: {}", user);
             validateUser(user);
-
             User existingUser = users.stream()
                     .filter(u -> u.getId() == user.getId())
                     .findFirst()

@@ -39,7 +39,6 @@ public class FilmController {
         try {
             log.info("Получен запрос на обновление фильма: {}", film);
             validateFilm(film);
-            
             Film existingFilm = films.stream()
                     .filter(f -> f.getId() == film.getId())
                     .findFirst()
