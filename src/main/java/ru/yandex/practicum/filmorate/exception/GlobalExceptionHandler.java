@@ -15,6 +15,7 @@ public class GlobalExceptionHandler {
         log.error("Ошибка валидации: {}", ex.getMessage());
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
+    
     @ExceptionHandler(Exception.class)
     public ResponseEntity<String> handleGenericException(Exception ex) {
         log.error("Необработанная ошибка: {}", ex.getMessage(), ex);
