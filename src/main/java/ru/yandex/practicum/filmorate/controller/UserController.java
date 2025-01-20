@@ -55,7 +55,7 @@ public class UserController {
             return user;
         } catch (ValidationException ex) {
             log.error("Ошибка при обновлении пользователя: {}", ex.getMessage());
-            throw ex;
+            throw new ValidationException("Некорректный запрос, " + ex.getMessage());
         }
     }
 
