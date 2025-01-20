@@ -41,8 +41,8 @@ public class UserController {
             validateUser(user);
             User existingUser = findUserById(user.getId());
             if (existingUser == null) {
-                log.warn("Пользователь с ID {} не найден", user.getId());
-                throw new ValidationException("Пользователь не найден");
+                log.error("Пользователь с ID {} не найден", user.getId());
+                throw new RuntimeException("Пользователь не найден");
             }
 
             users.removeIf(existing -> existing.getId() == user.getId());
@@ -50,7 +50,7 @@ public class UserController {
 
             log.info("Пользователь успешно обновлён: {}", user);
             return user;
-        } catch (ValidationException ex) {
+        } catch (Exception ex) {
             log.error("Ошибка при обновлении пользователя: {}", ex.getMessage());
             throw ex;
         }

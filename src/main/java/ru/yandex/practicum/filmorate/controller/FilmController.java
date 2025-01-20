@@ -41,8 +41,8 @@ public class FilmController {
             validateFilm(film);
             Film existingFilm = findFilmById(film.getId());
             if (existingFilm == null) {
-                log.warn("Фильм с ID {} не найден", film.getId());
-                throw new ValidationException("Фильм не найден");
+                log.error("Фильм с ID {} не найден", film.getId());
+                throw new RuntimeException("Фильм не найден");
             }
 
             films.removeIf(existing -> existing.getId() == film.getId());
@@ -50,7 +50,7 @@ public class FilmController {
 
             log.info("Фильм успешно обновлён: {}", film);
             return film;
-        } catch (ValidationException ex) {
+        } catch (Exception ex) {
             log.error("Ошибка при обновлении фильма: {}", ex.getMessage());
             throw ex;
         }
