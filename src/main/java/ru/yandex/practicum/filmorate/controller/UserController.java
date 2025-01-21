@@ -56,7 +56,7 @@ public class UserController {
         }
     }
 
-    private User findUserById(int id) {
+    private User findUserById(long id) {
         return users.stream()
                 .filter(user -> user.getId() == id)
                 .findFirst()
@@ -87,5 +87,85 @@ public class UserController {
             log.info("Имя пользователя пустое, будет использован логин: {}", user.getLogin());
             user.setName(user.getLogin());
         }
+    }
+
+    @PutMapping("/{id}/friends/{friendId}")
+    public void addFriend(@PathVariable int id, @PathVariable int friendId) {
+        log.info("Получен запрос на добавление друга. Пользователь ID: {}, друг ID: {}", id, friendId);
+        User user = findUserById(id);
+        User friend = findUserById(friendId);
+
+        if (user == null || friend == null) {
+            log.error("Один из пользователей не найден: пользователь ID {}, друг ID {}", id, friendId);
+            throw new RuntimeException("Один из пользователей не найден");
+        }
+
+        user.getFriends().add((long) friendId);
+        friend.getFriends().add((long) id);
+        log.info("Друзья успешно добавлены: пользователь ID {}, друг ID {}", id, friendId);
+    }
+
+    @DeleteMapping("/{id}/friends/{friendId}")
+    public void removeFriend(@PathVariable int id, @PathVariable int friendId) {
+        log.info("Получен запрос на удаление друга. Пользователь ID: {}, друг ID: {}", id, friendId);
+        User user = findUserById(id);
+        User friend = findUserById(friendId);
+
+        if (user == null || friend == null) {
+            log.error("Один из пользователей не найден: пользователь ID {}, друг ID {}", id, friendId);
+            throw new RuntimeException("Один из пользователей не найден");
+        }
+
+        user.getFriends().remove((Integer) friendId);
+        friend.getFriends().remove((Integer) id);
+        log.info("Друзья успешно удалены: пользователь ID {}, друг ID {}", id, friendId);
+    }
+
+    @GetMapping("/{id}/friends")
+    public List<User> getFriends(@PathVariable int id) {
+        log.info("Получен запрос на получение списка друзей пользователя ID: {}", id);
+        User user = findUserById(id);
+
+        if (user == null) {
+            log.error("Пользователь с ID {} не найден", id);
+            throw new RuntimeException("Пользователь не найден");
+        }
+
+        List<User> friends = new ArrayList<>();
+        for (Long friendId : user.getFriends()) {
+            friends.add(findUserById(friendId));
+        }
+
+        log.info("Список друзей успешно получен для пользователя ID: {}", id);
+        return friends;
+    }
+
+    @GetMapping("/{id}/friends/common/{otherId}")
+    public List<User> getCommonFriends(@PathVariable int id, @PathVariable int otherId) {
+        log.info("Получен запрос на общих друзей. Пользователь ID: {}, другой пользователь ID: {}", id, otherId);
+        User user = findUserById(id);
+        User otherUser = findUserById(otherId);
+
+        if (user == null || otherUser == null) {
+            log.error("Один из пользователей не найден: пользователь ID {}, другой пользователь ID {}", id, otherId);
+            throw new RuntimeException("Один из пользователей не найден");
+        }
+
+        List<User> commonFriends = new ArrayList<>();
+        for (Long friendId : user.getFriends()) {
+            if (otherUser.getFriends().contains(friendId)) {
+                commonFriends.add(findUserById(friendId));
+            }
+        }
+
+        log.info("Список общих друзей успешно получен. Пользователь ID: {}, другой пользователь ID: {}", id, otherId);
+        return commonFriends;
+    }
+
+    private User findUserById(int id) {
+        return users.stream()
+                .filter(user -> user.getId() == id)
+                .findFirst()
+                .orElse(null);
     }
 }

@@ -56,7 +56,7 @@ public class FilmController {
         }
     }
 
-    private Film findFilmById(int id) {
+    private Film findFilmById(long id) {
         return films.stream()
                 .filter(film -> film.getId() == id)
                 .findFirst()
@@ -87,5 +87,50 @@ public class FilmController {
             log.warn("Продолжительность фильма должна быть положительным числом");
             throw new ValidationException("Продолжительность фильма должна быть больше 0");
         }
+    }
+
+    @PutMapping("/{id}/like/{userId}")
+    public void addLike(@PathVariable int id, @PathVariable int userId) {
+        log.info("Получен запрос на добавление лайка фильму ID {} от пользователя ID {}", id, userId);
+        Film film = findFilmById(id);
+
+        if (film == null) {
+            log.error("Фильм с ID {} не найден", id);
+            throw new RuntimeException("Фильм не найден");
+        }
+
+        film.getLikes().add((long) userId);
+        log.info("Лайк успешно добавлен фильму ID {}", id);
+    }
+
+    @DeleteMapping("/{id}/like/{userId}")
+    public void removeLike(@PathVariable int id, @PathVariable int userId) {
+        log.info("Получен запрос на удаление лайка фильму ID {} от пользователя ID {}", id, userId);
+        Film film = findFilmById(id);
+
+        if (film == null) {
+            log.error("Фильм с ID {} не найден", id);
+            throw new RuntimeException("Фильм не найден");
+        }
+
+        film.getLikes().remove((Integer) userId);
+        log.info("Лайк успешно удалён у фильма ID {}", id);
+    }
+
+    @GetMapping("/popular")
+    public List<Film> getPopularFilms(@RequestParam(defaultValue = "10") int count) {
+        log.info("Получен запрос на получение популярных фильмов, количество: {}", count);
+
+        return films.stream()
+                .sorted((f1, f2) -> Integer.compare(f2.getLikes().size(), f1.getLikes().size()))
+                .limit(count)
+                .toList();
+    }
+
+    private Film findFilmById(int id) {
+        return films.stream()
+                .filter(film -> film.getId() == id)
+                .findFirst()
+                .orElse(null);
     }
 }
