@@ -5,8 +5,13 @@ import java.util.List;
 import java.util.Optional;
 
 public interface FilmStorage {
+
     Film add(Film film);
+
     Film update(Film film);
+
     Optional<Film> findById(int id);
+
     List<Film> findAll();
 }
+
