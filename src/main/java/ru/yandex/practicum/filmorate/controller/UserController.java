@@ -94,7 +94,9 @@ public class UserController {
     public void addFriend(@PathVariable int id, @PathVariable int friendId) {
         User user = findUserById(id);
         User friend = findUserById(friendId);
-        user.getFriends().add((long) friendId);
+        if (!user.getFriends().add((long) friendId)) {
+            throw new ValidationException("Пользователь с ID " + friendId + " уже в друзьях");
+        }
         friend.getFriends().add((long) id);
         log.info("Дружба установлена между ID {} и ID {}", id, friendId);
     }
@@ -156,6 +158,7 @@ public class UserController {
         return users.stream()
                 .filter(user -> user.getId() == id)
                 .findFirst()
-                .orElse(null);
+                .orElseThrow(() -> new NotFoundException("Пользователь с ID " + id + " не найден"));
     }
+
 }

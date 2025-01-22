@@ -32,3 +32,4 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(Map.of("error", "Внутренняя ошибка сервера"), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
+

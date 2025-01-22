@@ -93,7 +93,9 @@ public class FilmController {
     @PutMapping("/{id}/like/{userId}")
     public void addLike(@PathVariable int id, @PathVariable int userId) {
         Film film = findFilmById(id);
-        film.getLikes().add((long) userId);
+        if (!film.getLikes().add((long) userId)) {
+            throw new ValidationException("Пользователь с ID " + userId + " уже поставил лайк");
+        }
         log.info("Лайк добавлен фильму ID {} пользователем ID {}", id, userId);
     }
 
