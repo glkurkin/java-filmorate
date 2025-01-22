@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
@@ -91,30 +92,25 @@ public class FilmController {
 
     @PutMapping("/{id}/like/{userId}")
     public void addLike(@PathVariable int id, @PathVariable int userId) {
-        log.info("Получен запрос на добавление лайка фильму ID {} от пользователя ID {}", id, userId);
         Film film = findFilmById(id);
-
-        if (film == null) {
-            log.error("Фильм с ID {} не найден", id);
-            throw new RuntimeException("Фильм не найден");
-        }
-
         film.getLikes().add((long) userId);
-        log.info("Лайк успешно добавлен фильму ID {}", id);
+        log.info("Лайк добавлен фильму ID {} пользователем ID {}", id, userId);
     }
 
     @DeleteMapping("/{id}/like/{userId}")
     public void removeLike(@PathVariable int id, @PathVariable int userId) {
-        log.info("Получен запрос на удаление лайка фильму ID {} от пользователя ID {}", id, userId);
         Film film = findFilmById(id);
-
-        if (film == null) {
-            log.error("Фильм с ID {} не найден", id);
-            throw new RuntimeException("Фильм не найден");
+        if (!film.getLikes().remove((long) userId)) {
+            throw new NotFoundException("Лайк от пользователя с ID " + userId + " не найден");
         }
+        log.info("Лайк удалён у фильма ID {} пользователем ID {}", id, userId);
+    }
 
-        film.getLikes().remove((Integer) userId);
-        log.info("Лайк успешно удалён у фильма ID {}", id);
+    private Film findFilmById(int id) {
+        return films.stream()
+                .filter(film -> film.getId() == id)
+                .findFirst()
+                .orElseThrow(() -> new NotFoundException("Фильм с ID " + id + " не найден"));
     }
 
     @GetMapping("/popular")
@@ -125,12 +121,5 @@ public class FilmController {
                 .sorted((f1, f2) -> Integer.compare(f2.getLikes().size(), f1.getLikes().size()))
                 .limit(count)
                 .toList();
-    }
-
-    private Film findFilmById(int id) {
-        return films.stream()
-                .filter(film -> film.getId() == id)
-                .findFirst()
-                .orElse(null);
     }
 }

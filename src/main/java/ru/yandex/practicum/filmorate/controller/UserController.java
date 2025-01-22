@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
@@ -91,35 +92,24 @@ public class UserController {
 
     @PutMapping("/{id}/friends/{friendId}")
     public void addFriend(@PathVariable int id, @PathVariable int friendId) {
-        log.info("Получен запрос на добавление друга. Пользователь ID: {}, друг ID: {}", id, friendId);
         User user = findUserById(id);
         User friend = findUserById(friendId);
-
-        if (user == null || friend == null) {
-            log.error("Один из пользователей не найден: пользователь ID {}, друг ID {}", id, friendId);
-            throw new RuntimeException("Один из пользователей не найден");
-        }
-
         user.getFriends().add((long) friendId);
         friend.getFriends().add((long) id);
-        log.info("Друзья успешно добавлены: пользователь ID {}, друг ID {}", id, friendId);
+        log.info("Дружба установлена между ID {} и ID {}", id, friendId);
     }
 
     @DeleteMapping("/{id}/friends/{friendId}")
     public void removeFriend(@PathVariable int id, @PathVariable int friendId) {
-        log.info("Получен запрос на удаление друга. Пользователь ID: {}, друг ID: {}", id, friendId);
         User user = findUserById(id);
         User friend = findUserById(friendId);
 
-        if (user == null || friend == null) {
-            log.error("Один из пользователей не найден: пользователь ID {}, друг ID {}", id, friendId);
-            throw new RuntimeException("Один из пользователей не найден");
+        if (!user.getFriends().remove((long) friendId) || !friend.getFriends().remove((long) id)) {
+            throw new NotFoundException("Дружба между ID " + id + " и ID " + friendId + " не найдена");
         }
-
-        user.getFriends().remove((Integer) friendId);
-        friend.getFriends().remove((Integer) id);
-        log.info("Друзья успешно удалены: пользователь ID {}, друг ID {}", id, friendId);
+        log.info("Дружба разорвана между ID {} и ID {}", id, friendId);
     }
+
 
     @GetMapping("/{id}/friends")
     public List<User> getFriends(@PathVariable int id) {
