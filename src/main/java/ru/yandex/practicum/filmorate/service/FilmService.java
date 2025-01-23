@@ -8,12 +8,18 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 
 import java.time.LocalDate;
-import java.util.*;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Comparator;
 import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 public class FilmService {
+
+    private static final int MAX_DESCRIPTION_LENGTH = 200;
+    private static final LocalDate EARLIEST_RELEASE_DATE = LocalDate.of(1895, 12, 28);
+
     private final FilmStorage filmStorage;
     private final UserService userService;
 
@@ -74,12 +80,18 @@ public class FilmService {
         if (film.getName() == null || film.getName().isEmpty()) {
             throw new ValidationException("Название фильма не может быть пустым");
         }
-        if (film.getDescription() != null && film.getDescription().length() > 200) {
-            throw new ValidationException("Описание фильма не может быть длиннее 200 символов");
+        if (film.getDescription() != null
+                && film.getDescription().length() > MAX_DESCRIPTION_LENGTH) {
+            throw new ValidationException(
+                    String.format("Описание фильма не может быть длиннее %d символов",
+                            MAX_DESCRIPTION_LENGTH)
+            );
         }
-        LocalDate earliestDate = LocalDate.of(1895, 12, 28);
-        if (film.getReleaseDate() == null || film.getReleaseDate().isBefore(earliestDate)) {
-            throw new ValidationException("Дата релиза фильма слишком ранняя");
+        if (film.getReleaseDate() == null
+                || film.getReleaseDate().isBefore(EARLIEST_RELEASE_DATE)) {
+            throw new ValidationException(
+                    "Дата релиза фильма не может быть раньше " + EARLIEST_RELEASE_DATE
+            );
         }
         if (film.getDuration() <= 0) {
             throw new ValidationException("Продолжительность фильма должна быть больше 0");
