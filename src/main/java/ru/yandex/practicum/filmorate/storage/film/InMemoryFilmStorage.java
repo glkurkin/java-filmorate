@@ -1,9 +1,8 @@
 package ru.yandex.practicum.filmorate.storage.film;
-
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Film;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -11,6 +10,7 @@ import java.util.List;
 
 @Component
 @Slf4j
+@Qualifier("inMemoryFilmStorage")
 public class InMemoryFilmStorage implements FilmStorage {
 
     private final Map<Integer, Film> films = new HashMap<>();
@@ -46,5 +46,21 @@ public class InMemoryFilmStorage implements FilmStorage {
     @Override
     public List<Film> getAll() {
         return new ArrayList<>(films.values());
+    }
+
+    @Override
+    public void addLike(int filmId, int userId) {
+        Film film = films.get(filmId);
+        if (film != null) {
+            film.getLikes().add(userId);
+        }
+    }
+
+    @Override
+    public void removeLike(int filmId, int userId) {
+        Film film = films.get(filmId);
+        if (film != null) {
+            film.getLikes().remove(userId);
+        }
     }
 }

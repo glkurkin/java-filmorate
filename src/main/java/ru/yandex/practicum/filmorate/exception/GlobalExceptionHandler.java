@@ -35,5 +35,4 @@ public class GlobalExceptionHandler {
         log.error("Объект не найден: {}", ex.getMessage());
         return new ResponseEntity<>("{\"error\": \"" + ex.getMessage() + "\"}", HttpStatus.NOT_FOUND);
     }
-
 }

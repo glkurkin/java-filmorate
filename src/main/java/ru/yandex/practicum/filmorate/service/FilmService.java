@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -24,7 +25,8 @@ public class FilmService {
     private final UserService userService;
 
     @Autowired
-    public FilmService(FilmStorage filmStorage, UserService userService) {
+    public FilmService(@Qualifier("filmDbStorage") FilmStorage filmStorage,
+                       UserService userService) {
         this.filmStorage = filmStorage;
         this.userService = userService;
     }
@@ -56,22 +58,26 @@ public class FilmService {
     }
 
     public void addLike(int filmId, int userId) {
-        Film film = getFilmById(filmId);
+        getFilmById(filmId);
         userService.getUserById(userId);
-        film.getLikes().add(userId);
+
+        filmStorage.addLike(filmId, userId);
         log.info("Пользователь {} поставил лайк фильму {}", userId, filmId);
     }
 
     public void removeLike(int filmId, int userId) {
-        Film film = getFilmById(filmId);
+        getFilmById(filmId);
         userService.getUserById(userId);
-        film.getLikes().remove(userId);
+        filmStorage.removeLike(filmId, userId);
         log.info("Пользователь {} удалил лайк у фильма {}", userId, filmId);
     }
 
     public List<Film> getPopularFilms(int count) {
         return filmStorage.getAll().stream()
-                .sorted(Comparator.comparingInt((Film f) -> f.getLikes().size()).reversed())
+                .sorted(Comparator.comparingInt(f -> f.getLikes().size()))
+                .collect(Collectors.toList())
+                .stream()
+                .sorted((f1, f2) -> Integer.compare(f2.getLikes().size(), f1.getLikes().size()))
                 .limit(count)
                 .collect(Collectors.toList());
     }
@@ -82,10 +88,8 @@ public class FilmService {
         }
         if (film.getDescription() != null
                 && film.getDescription().length() > MAX_DESCRIPTION_LENGTH) {
-            throw new ValidationException(
-                    String.format("Описание фильма не может быть длиннее %d символов",
-                            MAX_DESCRIPTION_LENGTH)
-            );
+            throw new ValidationException(String.format("Описание фильма не может быть длиннее %d символов",
+                    MAX_DESCRIPTION_LENGTH));
         }
         if (film.getReleaseDate() == null
                 || film.getReleaseDate().isBefore(EARLIEST_RELEASE_DATE)) {
