@@ -42,7 +42,6 @@ public class FilmService {
 
     public Film createFilm(Film film) {
         validateFilm(film);
-        
         if (film.getMpa() != null) {
             int mpaId = film.getMpa().getId();
             if (mpaService.getMpaById(mpaId) == null) {
@@ -63,7 +62,6 @@ public class FilmService {
 
     public Film updateFilm(Film film) {
         validateFilm(film);
-
         if (film.getMpa() != null) {
             int mpaId = film.getMpa().getId();
             if (mpaService.getMpaById(mpaId) == null) {
