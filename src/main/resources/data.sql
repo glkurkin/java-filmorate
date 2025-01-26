@@ -14,16 +14,3 @@ INSERT INTO film_genres (film_id, genre_id) VALUES (1, 1);
 INSERT INTO likes (film_id, user_id) VALUES (1, 1), (1, 2);
 
 INSERT INTO friendships (user_id, friend_id, status) VALUES (1, 2, 'confirmed');
-
-INSERT INTO MPA_RATINGS (id, name) VALUES (1, 'G');
-INSERT INTO MPA_RATINGS (id, name) VALUES (2, 'PG');
-INSERT INTO MPA_RATINGS (id, name) VALUES (3, 'PG-13');
-INSERT INTO MPA_RATINGS (id, name) VALUES (4, 'R');
-INSERT INTO MPA_RATINGS (id, name) VALUES (5, 'NC-17');
-
-INSERT INTO GENRES (id, name) VALUES (1, 'Комедия');
-INSERT INTO GENRES (id, name) VALUES (2, 'Драма');
-INSERT INTO GENRES (id, name) VALUES (3, 'Мультфильм');
-INSERT INTO GENRES (id, name) VALUES (4, 'Триллер');
-INSERT INTO GENRES (id, name) VALUES (5, 'Документальный');
-INSERT INTO GENRES (id, name) VALUES (6, 'Боевик');
