@@ -28,7 +28,6 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(NoSuchElementException.class)
     public ResponseEntity<String> handleNoSuchElementException(NoSuchElementException ex) {
-        log.error("Объект не найден: {}", ex.getMessage());
         return new ResponseEntity<>("{\"error\": \"" + ex.getMessage() + "\"}", HttpStatus.NOT_FOUND);
     }
 

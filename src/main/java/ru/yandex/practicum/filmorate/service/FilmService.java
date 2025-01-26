@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 
 import java.time.LocalDate;
@@ -23,21 +24,61 @@ public class FilmService {
 
     private final FilmStorage filmStorage;
     private final UserService userService;
+    private final MpaService mpaService;
+    private final GenreService genreService;
 
     @Autowired
-    public FilmService(@Qualifier("filmDbStorage") FilmStorage filmStorage,
-                       UserService userService) {
+    public FilmService(
+            @Qualifier("filmDbStorage") FilmStorage filmStorage,
+            UserService userService,
+            MpaService mpaService,
+            GenreService genreService
+    ) {
         this.filmStorage = filmStorage;
         this.userService = userService;
+        this.mpaService = mpaService;
+        this.genreService = genreService;
     }
 
     public Film createFilm(Film film) {
         validateFilm(film);
+        
+        if (film.getMpa() != null) {
+            int mpaId = film.getMpa().getId();
+            if (mpaService.getMpaById(mpaId) == null) {
+                throw new NoSuchElementException("MPA с id=" + mpaId + " не найден");
+            }
+        }
+
+        if (film.getGenres() != null) {
+            for (Genre g : film.getGenres()) {
+                if (genreService.getGenreById(g.getId()) == null) {
+                    throw new NoSuchElementException("Жанр с id=" + g.getId() + " не найден");
+                }
+            }
+        }
+
         return filmStorage.create(film);
     }
 
     public Film updateFilm(Film film) {
         validateFilm(film);
+
+        if (film.getMpa() != null) {
+            int mpaId = film.getMpa().getId();
+            if (mpaService.getMpaById(mpaId) == null) {
+                throw new NoSuchElementException("MPA с id=" + mpaId + " не найден");
+            }
+        }
+
+        if (film.getGenres() != null) {
+            for (Genre g : film.getGenres()) {
+                if (genreService.getGenreById(g.getId()) == null) {
+                    throw new NoSuchElementException("Жанр с id=" + g.getId() + " не найден");
+                }
+            }
+        }
+
         Film updatedFilm = filmStorage.update(film);
         if (updatedFilm == null) {
             throw new NoSuchElementException("Фильм не найден");
@@ -60,7 +101,6 @@ public class FilmService {
     public void addLike(int filmId, int userId) {
         getFilmById(filmId);
         userService.getUserById(userId);
-
         filmStorage.addLike(filmId, userId);
         log.info("Пользователь {} поставил лайк фильму {}", userId, filmId);
     }
@@ -75,7 +115,7 @@ public class FilmService {
     public List<Film> getPopularFilms(int count) {
         return filmStorage.getAll().stream()
                 .sorted(Comparator.comparingInt(f -> f.getLikes().size()))
-                .collect(Collectors.toList())
+                .toList()
                 .stream()
                 .sorted((f1, f2) -> Integer.compare(f2.getLikes().size(), f1.getLikes().size()))
                 .limit(count)
@@ -88,8 +128,9 @@ public class FilmService {
         }
         if (film.getDescription() != null
                 && film.getDescription().length() > MAX_DESCRIPTION_LENGTH) {
-            throw new ValidationException(String.format("Описание фильма не может быть длиннее %d символов",
-                    MAX_DESCRIPTION_LENGTH));
+            throw new ValidationException(
+                    "Описание фильма не может быть длиннее " + MAX_DESCRIPTION_LENGTH + " символов"
+            );
         }
         if (film.getReleaseDate() == null
                 || film.getReleaseDate().isBefore(EARLIEST_RELEASE_DATE)) {

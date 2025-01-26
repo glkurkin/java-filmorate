@@ -11,8 +11,8 @@ import ru.yandex.practicum.filmorate.model.Mpa;
 
 import java.sql.*;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -28,24 +28,24 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film create(Film film) {
-        String sql = "INSERT INTO FILMS (name, description, release_date, duration, mpa_id) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO films (name, description, release_date, duration, mpa_id) VALUES (?, ?, ?, ?, ?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
         jdbcTemplate.update(connection -> {
-            PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            PreparedStatement ps = connection.prepareStatement(sql, new String[]{"id"});
             ps.setString(1, film.getName());
             ps.setString(2, film.getDescription());
             ps.setDate(3, Date.valueOf(film.getReleaseDate()));
             ps.setInt(4, film.getDuration());
-            ps.setObject(5, film.getMpa() != null ? film.getMpa().getId() : null);
+            ps.setInt(5, film.getMpa().getId());
             return ps;
         }, keyHolder);
 
-        int generatedId = Objects.requireNonNull(keyHolder.getKey()).intValue();
-        film.setId(generatedId);
-        saveFilmGenres(film);
+        int filmId = keyHolder.getKey().intValue();
+        film.setId(filmId);
 
-        return getById(generatedId);
+        saveGenres(film);
+        return film;
     }
 
     @Override
@@ -135,10 +135,11 @@ public class FilmDbStorage implements FilmStorage {
         String sql = "SELECT g.id, g.name " +
                 "FROM film_genres fg " +
                 "JOIN genres g ON fg.genre_id = g.id " +
-                "WHERE fg.film_id = ?";
+                "WHERE fg.film_id = ?" +
+                "ORDER BY g.id";
         List<Genre> genres = jdbcTemplate.query(sql, (rs, rowNum) ->
                 new Genre(rs.getInt("id"), rs.getString("name")), filmId);
-        return new HashSet<>(genres);
+        return new LinkedHashSet<>(genres);
     }
 
     private void saveFilmGenres(Film film) {
@@ -155,5 +156,14 @@ public class FilmDbStorage implements FilmStorage {
     private void deleteFilmGenres(int filmId) {
         String sql = "DELETE FROM film_genres WHERE film_id = ?";
         jdbcTemplate.update(sql, filmId);
+    }
+
+    private void saveGenres(Film film) {
+        if (film.getGenres() != null && !film.getGenres().isEmpty()) {
+            String sql = "INSERT INTO film_genres (film_id, genre_id) VALUES (?, ?)";
+            for (Genre genre : film.getGenres()) {
+                jdbcTemplate.update(sql, film.getId(), genre.getId());
+            }
+        }
     }
 }
