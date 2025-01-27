@@ -85,7 +85,7 @@ public class FilmDbStorage implements FilmStorage {
                 "WHERE f.id = ?";
 
         try {
-            return jdbcTemplate.queryForObject (sql, this::mapRowToFilm, id);
+            return jdbcTemplate.queryForObject(sql, this::mapRowToFilm, id);
         } catch (EmptyResultDataAccessException e) {
             return null;
         }
