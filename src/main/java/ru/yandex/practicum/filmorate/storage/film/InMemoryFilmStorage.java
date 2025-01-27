@@ -3,10 +3,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Film;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.List;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -63,4 +62,13 @@ public class InMemoryFilmStorage implements FilmStorage {
             film.getLikes().remove(userId);
         }
     }
+
+    @Override
+    public List<Film> getPopularFilms(int count) {
+        return films.values().stream()
+                .sorted(Comparator.comparingInt((Film f) -> f.getLikes().size()).reversed())
+                .limit(count)
+                .collect(Collectors.toList());
+    }
+
 }

@@ -110,14 +110,14 @@ public class FilmService {
         log.info("Пользователь {} удалил лайк у фильма {}", userId, filmId);
     }
 
+    /**
+     * Получение списка популярных фильмов с ограничением по количеству.
+     *
+     * @param count количество фильмов
+     * @return список популярных фильмов
+     */
     public List<Film> getPopularFilms(int count) {
-        return filmStorage.getAll().stream()
-                .sorted(Comparator.comparingInt(f -> f.getLikes().size()))
-                .toList()
-                .stream()
-                .sorted((f1, f2) -> Integer.compare(f2.getLikes().size(), f1.getLikes().size()))
-                .limit(count)
-                .collect(Collectors.toList());
+        return filmStorage.getPopularFilms(count);
     }
 
     private void validateFilm(Film film) {

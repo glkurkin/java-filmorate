@@ -16,4 +16,12 @@ public interface FilmStorage {
     void addLike(int filmId, int userId);
 
     void removeLike(int filmId, int userId);
+
+    /**
+     * Получение списка популярных фильмов с ограничением по количеству.
+     *
+     * @param count количество фильмов
+     * @return список популярных фильмов
+     */
+    List<Film> getPopularFilms(int count);
 }

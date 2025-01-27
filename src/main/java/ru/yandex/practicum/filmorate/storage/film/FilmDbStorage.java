@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.storage.film;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -14,10 +15,7 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Repository
@@ -29,7 +27,8 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film create(Film film) {
-        String sql = "INSERT INTO films (name, description, release_date, duration, mpa_id) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO films (name, description, release_date, duration, mpa_id) " +
+                "VALUES (?, ?, ?, ?, ?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
         jdbcTemplate.update(connection -> {
@@ -42,12 +41,17 @@ public class FilmDbStorage implements FilmStorage {
             return ps;
         }, keyHolder);
 
-        int filmId = keyHolder.getKey().intValue();
-        film.setId(filmId);
+        Number key = keyHolder.getKey();
+        if (key == null) {
+            throw new IllegalStateException("Failed to retrieve generated key for film.");
+        }
+        film.setId(key.intValue());
+        saveFilmGenres(film);
 
-        saveGenres(film);
         return film;
-    }
+}
+
+
 
     @Override
     public Film update(Film film) {
@@ -74,24 +78,26 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film getById(int id) {
-        String sql = "SELECT f.*, m.id as mpa_id, m.name as mpa_name " +
-                "FROM FILMS f " +
-                "LEFT JOIN MPA_RATINGS m ON f.mpa_id = m.id " +
+        String sql = "SELECT f.id, f.name, f.description, f.release_date, f.duration, f.mpa_id, " +
+                "m.name AS mpa_name " +
+                "FROM films f " +
+                "LEFT JOIN mpa_ratings m ON f.mpa_id = m.id " +
                 "WHERE f.id = ?";
 
-        List<Film> films = jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToFilm(rs), id);
-        if (films.isEmpty()) {
+        try {
+            return jdbcTemplate.queryForObject (sql, this::mapRowToFilm, id);
+        } catch (EmptyResultDataAccessException e) {
             return null;
         }
-        return films.get(0);
     }
 
     @Override
     public List<Film> getAll() {
-        String sql = "SELECT f.*, m.id as mpa_id, m.name as mpa_name " +
-                "FROM FILMS f " +
-                "LEFT JOIN MPA_RATINGS m ON f.mpa_id = m.id";
-        return jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToFilm(rs));
+        String sql = "SELECT f.id, f.name, f.description, f.release_date, f.duration, f.mpa_id, " +
+                "m.name AS mpa_name " +
+                "FROM films f " +
+                "LEFT JOIN mpa_ratings m ON f.mpa_id = m.id";
+        return jdbcTemplate.query(sql, this::mapRowToFilm);
     }
 
     @Override
@@ -106,7 +112,28 @@ public class FilmDbStorage implements FilmStorage {
         jdbcTemplate.update(sql, filmId, userId);
     }
 
-    private Film mapRowToFilm(ResultSet rs) throws SQLException {
+    /**
+     * Получение списка популярных фильмов с ограничением по количеству.
+     *
+     * @param count количество фильмов
+     * @return список популярных фильмов
+     */
+    @Override
+    public List<Film> getPopularFilms(int count) {
+        String sql = "SELECT f.id, f.name, f.description, f.release_date, f.duration, f.mpa_id, " +
+                "COUNT(l.user_id) AS likes_count, " +
+                "m.name AS mpa_name " +
+                "FROM films f " +
+                "LEFT JOIN likes l ON f.id = l.film_id " +
+                "LEFT JOIN mpa_ratings m ON f.mpa_id = m.id " +
+                "GROUP BY f.id, f.name, f.description, f.release_date, f.duration, f.mpa_id, m.name " +
+                "ORDER BY likes_count DESC " +
+                "LIMIT ?";
+
+        return jdbcTemplate.query(sql, this::mapRowToFilm, count);
+    }
+
+    private Film mapRowToFilm(ResultSet rs, int rowNum) throws SQLException {
         Film film = new Film();
         film.setId(rs.getInt("id"));
         film.setName(rs.getString("name"));
