@@ -87,13 +87,8 @@ public class UserService {
 
 
     public List<User> getCommonFriends(int userId, int otherId) {
-        List<User> users = userStorage.getUsersByIds(List.of(userId, otherId));
-        if (users.size() < 2) {
-            throw new NoSuchElementException("Один из пользователей не найден.");
-        }
-
-        User user = users.get(0).getId() == userId ? users.get(0) : users.get(1);
-        User otherUser = users.get(0).getId() == otherId ? users.get(0) : users.get(1);
+        User user = getUserById(userId);
+        User otherUser = getUserById(otherId);
 
         Set<Integer> common = new HashSet<>(user.getFriends());
         common.retainAll(otherUser.getFriends());

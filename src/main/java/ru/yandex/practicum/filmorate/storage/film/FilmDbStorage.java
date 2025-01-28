@@ -172,10 +172,15 @@ public class FilmDbStorage implements FilmStorage {
             return;
         }
         String sql = "INSERT INTO film_genres (film_id, genre_id) VALUES (?, ?)";
-        Set<Integer> uniqueGenreIds = film.getGenres().stream().map(Genre::getId).collect(Collectors.toSet());
-        for (Integer genreId : uniqueGenreIds) {
-            jdbcTemplate.update(sql, film.getId(), genreId);
-        }
+        Set<Integer> uniqueGenreIds = film.getGenres().stream()
+                .map(Genre::getId)
+                .collect(Collectors.toSet());
+
+        List<Object[]> batchArgs = uniqueGenreIds.stream()
+                .map(genreId -> new Object[]{film.getId(), genreId})
+                .collect(Collectors.toList());
+
+        jdbcTemplate.batchUpdate(sql, batchArgs);
     }
 
     private void deleteFilmGenres(int filmId) {
