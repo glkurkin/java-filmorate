@@ -7,6 +7,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.model.User;
+import org.springframework.dao.EmptyResultDataAccessException;
 
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -64,11 +65,11 @@ public class UserDbStorage implements UserStorage {
     @Override
     public User getById(int id) {
         String sql = "SELECT id, email, login, name, birthday FROM USERS WHERE id = ?";
-        List<User> users = jdbcTemplate.query(sql, this::mapRowToUser, id);
-        if (users.isEmpty()) {
+        try {
+            return jdbcTemplate.queryForObject(sql, this::mapRowToUser, id);
+        } catch (EmptyResultDataAccessException e) {
             return null;
         }
-        return users.get(0);
     }
 
     @Override

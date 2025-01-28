@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.model.Genre;
+import org.springframework.dao.EmptyResultDataAccessException;
 
 import java.util.List;
 
@@ -24,8 +25,11 @@ public class GenreDbStorage implements GenreStorage {
     @Override
     public Genre getById(int id) {
         String sql = "SELECT id, name FROM GENRES WHERE id = ?";
-        List<Genre> result = jdbcTemplate.query(sql, (rs, rowNum) ->
-                new Genre(rs.getInt("id"), rs.getString("name")), id);
-        return result.isEmpty() ? null : result.get(0);
+        try {
+            return jdbcTemplate.queryForObject(sql, (rs, rowNum) ->
+                    new Genre(rs.getInt("id"), rs.getString("name")), id);
+        } catch (EmptyResultDataAccessException e) {
+            return null;
+        }
     }
 }

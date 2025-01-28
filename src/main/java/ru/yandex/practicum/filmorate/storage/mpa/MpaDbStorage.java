@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.model.Mpa;
+import org.springframework.dao.EmptyResultDataAccessException;
 
 import java.util.List;
 
@@ -24,8 +25,11 @@ public class MpaDbStorage implements MpaStorage {
     @Override
     public Mpa getById(int id) {
         String sql = "SELECT id, name FROM MPA_RATINGS WHERE id = ?";
-        List<Mpa> result = jdbcTemplate.query(sql, (rs, rowNum) ->
-                new Mpa(rs.getInt("id"), rs.getString("name")), id);
-        return result.isEmpty() ? null : result.get(0);
+        try {
+            return jdbcTemplate.queryForObject(sql, (rs, rowNum) ->
+                    new Mpa(rs.getInt("id"), rs.getString("name")), id);
+        } catch (EmptyResultDataAccessException e) {
+            return null;
+        }
     }
 }
