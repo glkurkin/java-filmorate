@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
@@ -51,41 +52,57 @@ public class UserService {
         return user;
     }
 
+    @Transactional
     public void addFriend(int userId, int friendId) {
-        getUserById(userId);
-        getUserById(friendId);
+        List<User> users = userStorage.getUsersByIds(List.of(userId, friendId));
+        if (users.size() < 2) {
+            throw new NoSuchElementException("Один из пользователей не найден.");
+        }
+
         userStorage.addFriend(userId, friendId);
+
         log.info("Пользователь {} добавил в друзья {}", userId, friendId);
     }
 
+    @Transactional
     public void removeFriend(int userId, int friendId) {
-        getUserById(userId);
-        getUserById(friendId);
+        List<User> users = userStorage.getUsersByIds(List.of(userId, friendId));
+        if (users.size() < 2) {
+            throw new NoSuchElementException("Один из пользователей не найден.");
+        }
+
         userStorage.removeFriend(userId, friendId);
+
         log.info("Пользователь {} удалил из друзей {}", userId, friendId);
     }
 
     public List<User> getFriends(int userId) {
         User user = getUserById(userId);
-        List<User> friends = new ArrayList<>();
-        for (Integer friendId : user.getFriends()) {
-            friends.add(getUserById(friendId));
+        Set<Integer> friendIds = user.getFriends();
+        if (friendIds.isEmpty()) {
+            return List.of();
         }
-        return friends;
+        return userStorage.getUsersByIds(new ArrayList<>(friendIds));
     }
 
+
     public List<User> getCommonFriends(int userId, int otherId) {
-        User user = getUserById(userId);
-        User otherUser = getUserById(otherId);
+        List<User> users = userStorage.getUsersByIds(List.of(userId, otherId));
+        if (users.size() < 2) {
+            throw new NoSuchElementException("Один из пользователей не найден.");
+        }
+
+        User user = users.get(0).getId() == userId ? users.get(0) : users.get(1);
+        User otherUser = users.get(0).getId() == otherId ? users.get(0) : users.get(1);
 
         Set<Integer> common = new HashSet<>(user.getFriends());
         common.retainAll(otherUser.getFriends());
 
-        List<User> result = new ArrayList<>();
-        for (Integer id : common) {
-            result.add(getUserById(id));
+        if (common.isEmpty()) {
+            return List.of();
         }
-        return result;
+
+        return userStorage.getUsersByIds(new ArrayList<>(common));
     }
 
     private void validateUser(User user) {

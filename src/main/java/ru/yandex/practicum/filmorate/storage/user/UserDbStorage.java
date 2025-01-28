@@ -90,6 +90,18 @@ public class UserDbStorage implements UserStorage {
         jdbcTemplate.update(sql, userId, friendId);
     }
 
+    @Override
+    public List<User> getUsersByIds(List<Integer> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return List.of();
+        }
+        String sql = String.format(
+                "SELECT id, email, login, name, birthday FROM USERS WHERE id IN (%s)",
+                String.join(",", ids.stream().map(id -> "?").toArray(String[]::new))
+        );
+        return jdbcTemplate.query(sql, this::mapRowToUser, ids.toArray());
+    }
+
     private User mapRowToUser(ResultSet rs, int rowNum) throws SQLException {
         User user = new User();
         user.setId(rs.getInt("id"));
