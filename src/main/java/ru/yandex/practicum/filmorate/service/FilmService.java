@@ -108,12 +108,6 @@ public class FilmService {
         log.info("Пользователь {} удалил лайк у фильма {}", userId, filmId);
     }
 
-    /**
-     * Получение списка популярных фильмов с ограничением по количеству.
-     *
-     * @param count количество фильмов
-     * @return список популярных фильмов
-     */
     public List<Film> getPopularFilms(int count) {
         return filmStorage.getPopularFilms(count);
     }

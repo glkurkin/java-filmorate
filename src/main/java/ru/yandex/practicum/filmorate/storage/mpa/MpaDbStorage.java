@@ -15,7 +15,7 @@ public class MpaDbStorage implements MpaStorage {
 
     @Override
     public List<Mpa> getAll() {
-        String sql = "SELECT * FROM MPA_RATINGS";
+        String sql = "SELECT id, name FROM MPA_RATINGS";
         return jdbcTemplate.query(sql, (rs, rowNum) ->
                 new Mpa(rs.getInt("id"), rs.getString("name"))
         );
@@ -23,7 +23,7 @@ public class MpaDbStorage implements MpaStorage {
 
     @Override
     public Mpa getById(int id) {
-        String sql = "SELECT * FROM MPA_RATINGS WHERE id = ?";
+        String sql = "SELECT id, name FROM MPA_RATINGS WHERE id = ?";
         List<Mpa> result = jdbcTemplate.query(sql, (rs, rowNum) ->
                 new Mpa(rs.getInt("id"), rs.getString("name")), id);
         return result.isEmpty() ? null : result.get(0);

@@ -15,7 +15,10 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Repository
@@ -112,12 +115,6 @@ public class FilmDbStorage implements FilmStorage {
         jdbcTemplate.update(sql, filmId, userId);
     }
 
-    /**
-     * Получение списка популярных фильмов с ограничением по количеству.
-     *
-     * @param count количество фильмов
-     * @return список популярных фильмов
-     */
     @Override
     public List<Film> getPopularFilms(int count) {
         String sql = "SELECT f.id, f.name, f.description, f.release_date, f.duration, f.mpa_id, " +
@@ -184,14 +181,5 @@ public class FilmDbStorage implements FilmStorage {
     private void deleteFilmGenres(int filmId) {
         String sql = "DELETE FROM film_genres WHERE film_id = ?";
         jdbcTemplate.update(sql, filmId);
-    }
-
-    private void saveGenres(Film film) {
-        if (film.getGenres() != null && !film.getGenres().isEmpty()) {
-            String sql = "INSERT INTO film_genres (film_id, genre_id) VALUES (?, ?)";
-            for (Genre genre : film.getGenres()) {
-                jdbcTemplate.update(sql, film.getId(), genre.getId());
-            }
-        }
     }
 }

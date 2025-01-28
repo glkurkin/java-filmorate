@@ -63,7 +63,7 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public User getById(int id) {
-        String sql = "SELECT * FROM USERS WHERE id = ?";
+        String sql = "SELECT id, email, login, name, birthday FROM USERS WHERE id = ?";
         List<User> users = jdbcTemplate.query(sql, this::mapRowToUser, id);
         if (users.isEmpty()) {
             return null;
@@ -73,7 +73,7 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public List<User> getAll() {
-        String sql = "SELECT * FROM USERS";
+        String sql = "SELECT id, email, login, name, birthday FROM USERS";
         return jdbcTemplate.query(sql, this::mapRowToUser);
     }
 

@@ -15,7 +15,7 @@ public class GenreDbStorage implements GenreStorage {
 
     @Override
     public List<Genre> getAll() {
-        String sql = "SELECT * FROM GENRES";
+        String sql = "SELECT id, name FROM GENRES";
         return jdbcTemplate.query(sql, (rs, rowNum) ->
                 new Genre(rs.getInt("id"), rs.getString("name"))
         );
@@ -23,7 +23,7 @@ public class GenreDbStorage implements GenreStorage {
 
     @Override
     public Genre getById(int id) {
-        String sql = "SELECT * FROM GENRES WHERE id = ?";
+        String sql = "SELECT id, name FROM GENRES WHERE id = ?";
         List<Genre> result = jdbcTemplate.query(sql, (rs, rowNum) ->
                 new Genre(rs.getInt("id"), rs.getString("name")), id);
         return result.isEmpty() ? null : result.get(0);
