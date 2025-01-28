@@ -12,6 +12,8 @@ import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -40,6 +42,7 @@ public class FilmService {
 
     public Film createFilm(Film film) {
         validateFilm(film);
+
         if (film.getMpa() != null) {
             int mpaId = film.getMpa().getId();
             if (mpaService.getMpaById(mpaId) == null) {
@@ -47,11 +50,18 @@ public class FilmService {
             }
         }
 
-        if (film.getGenres() != null) {
-            for (Genre g : film.getGenres()) {
-                if (genreService.getGenreById(g.getId()) == null) {
-                    throw new NoSuchElementException("Жанр с id=" + g.getId() + " не найден");
-                }
+        if (film.getGenres() != null && !film.getGenres().isEmpty()) {
+            Set<Integer> genreIds = film.getGenres().stream()
+                    .map(Genre::getId)
+                    .collect(Collectors.toSet());
+
+            Set<Integer> existingGenreIds = genreService.getAllGenres().stream()
+                    .map(Genre::getId)
+                    .filter(genreIds::contains)
+                    .collect(Collectors.toSet());
+
+            if (!existingGenreIds.containsAll(genreIds)) {
+                throw new NoSuchElementException("Один или несколько жанров не найдены");
             }
         }
 
